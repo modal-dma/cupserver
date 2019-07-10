@@ -73,7 +73,7 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData  + "'";
 	        	        
-	        qry += " GROUP BY descrizione ORDER BY descrizione ASC";
+	        qry += " GROUP BY descrizione ORDER BY val DESC";
 	        
 //	        select * from dwh_mis_cup where sa_data_pren >= '01/01/2017' and sa_data_pren <= '31/12/2017'
 //	        		
@@ -165,7 +165,7 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData  + "'";
 	        	        
-	        qry += " GROUP BY descrizione ORDER BY descrizione ASC";
+	        qry += " GROUP BY descrizione ORDER BY val DESC";
 	        
 	        System.out.println("query " + qry);
 	        
