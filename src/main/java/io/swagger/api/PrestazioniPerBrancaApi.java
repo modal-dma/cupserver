@@ -8,6 +8,8 @@ package io.swagger.api;
 import io.swagger.model.Dataset;
 import io.swagger.model.Dataset3D;
 import io.swagger.model.HeatmapItem;
+import io.swagger.model.PathNode;
+import io.swagger.model.TreemapDataset;
 import io.swagger.annotations.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -25,11 +27,21 @@ import javax.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2019-06-12T09:36:36.471Z")
 
 @Api(value = "prestazioniPerBranca", description = "the prestazioniPerBranca API")
 public interface PrestazioniPerBrancaApi {
+
+    @ApiOperation(value = "Prestazioni Per Branca nel tempo", nickname = "prestazioniBrancaNelTempo", notes = "prestazioniBrancaNelTempo ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prestazioniBrancaNelTempo",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prestazioniBrancaNelTempo(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = false) String branca);
 
     @ApiOperation(value = "Prestazioni Per Branca", nickname = "prestazioniPerBranca", notes = "prestazioniPerBranca ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -113,7 +125,7 @@ public interface PrestazioniPerBrancaApi {
         method = RequestMethod.GET)
     ResponseEntity<ArrayList<String>> prestazioni(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
-    @ApiOperation(value = "Heatmap Prestazioni", nickname = "heatmapPrestazioni", notes = "heatmapPrestazioni", response = ArrayList.class, responseContainer = "List", tags={ "developers", })
+    @ApiOperation(value = "Heatmap Prestazioni", nickname = "heatmapBranche", notes = "heatmapBranche", response = ArrayList.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
         @ApiResponse(code = 400, message = "bad input parameter") })
@@ -121,6 +133,51 @@ public interface PrestazioniPerBrancaApi {
         produces = { "application/json" }, 
         method = RequestMethod.GET)
     ResponseEntity<ArrayList<HeatmapItem>> heatmapBranche(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
+
+    @ApiOperation(value = "Attesa Disponibilità Per Branca", nickname = "prenotazioniPerPrestazioneDopoPrestazione", notes = "prenotazioniPerBrancaDopoBranca ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prenotazioniPerPrestazioneDopoPrestazione",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prenotazioniPerPrestazioneDopoPrestazione(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
+    @ApiOperation(value = "Attesa Disponibilità Per Branca", nickname = "prenotazioniPerBrancaDopoBranca", notes = "prenotazioniPerBrancaDopoBranca ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prenotazioniPerBrancaDopoBranca",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prenotazioniPerBrancaDopoBranca(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
+    @ApiOperation(value = "Prestazioni Per Branca", nickname = "branchePrestazioni", notes = "branchePrestazioni", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = HashMap.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/branchePrestazioni",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<HashMap<String, ArrayList<TreemapDataset>>> branchePrestazioni(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
+    @ApiOperation(value = "Prestazioni Per Eta", nickname = "branchePrestazioni", notes = "branchePrestazioni", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = HashMap.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/etaPrestazioni",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<HashMap<String, ArrayList<TreemapDataset>>> etaPrestazioni(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
+    @ApiOperation(value = "Prestazioni nel tempo", nickname = "branchePrestazioni", notes = "branchePrestazioni", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = HashMap.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/pathPrestazioniNelTempo",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
     
 }
