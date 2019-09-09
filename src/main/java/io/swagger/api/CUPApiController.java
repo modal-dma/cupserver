@@ -34,21 +34,24 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2019-06-12T09:36:36.471Z")
 
 @Controller
-public class PrestazioniPerBrancaApiController implements PrestazioniPerBrancaApi {
+public class CUPApiController implements CUPApi {
 
-    private static final Logger log = LoggerFactory.getLogger(PrestazioniPerBrancaApiController.class);
+    private static final Logger log = LoggerFactory.getLogger(CUPApiController.class);
 
     private final ObjectMapper objectMapper;
 
     private final HttpServletRequest request;
 
     @org.springframework.beans.factory.annotation.Autowired
-    public PrestazioniPerBrancaApiController(ObjectMapper objectMapper, HttpServletRequest request) {
+    public CUPApiController(ObjectMapper objectMapper, HttpServletRequest request) {
         this.objectMapper = objectMapper;
         this.request = request;
     }
@@ -271,6 +274,26 @@ public class PrestazioniPerBrancaApiController implements PrestazioniPerBrancaAp
 	      }
 	}
 	
+	public ResponseEntity<ArrayList<String>> eta() 
+	{
+	      try {
+	      	
+	      	DBAPI dbapi = DBAPI.getInstance();
+	  		
+	      	ArrayList<String> comuniList = dbapi.eta();
+	  		
+	  		
+	  		HttpHeaders headers = new HttpHeaders();
+	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+	      	
+	          return new ResponseEntity<ArrayList<String>>(comuniList, headers, HttpStatus.OK);
+	      } catch (Exception e) {
+	          log.error("Couldn't serialize response for content type application/json", e);
+	          return new ResponseEntity<ArrayList<String>>(HttpStatus.INTERNAL_SERVER_ERROR);
+	      }
+	}
+	
 	 public ResponseEntity<Dataset> tipoPrestazione(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
 	    {
 	            try {
@@ -398,7 +421,7 @@ public class PrestazioniPerBrancaApiController implements PrestazioniPerBrancaAp
 		      }
 	 	}
 	 	
-	 	public ResponseEntity<HashMap<String, ArrayList<TreemapDataset>>> etaPrestazioni(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+	 	public ResponseEntity<HashMap<String, ArrayList<TreemapDataset>>> etaPrestazioni(@ApiParam(value = "eta (opzionale)") @Valid @RequestParam(value = "eta", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
 	 	{
 	 		try {
 		      	
@@ -481,6 +504,71 @@ public class PrestazioniPerBrancaApiController implements PrestazioniPerBrancaAp
 	 			node.children.add(childNode);
 	 			
 	 			populatePathNode(childNode, child.children);
+	 			
+//	 			System.out.println(node.name);
+//	 			System.out.println(node.children);
+	 			
+	 			Collections.sort(node.children, new Comparator<PathNode>() {
+
+					@Override
+					public int compare(PathNode o1, PathNode o2) {
+						
+						return o1.count < o2.count ? 1 : -1;
+					}
+	 				
+				});
+	 			
+//	 			System.out.println(node.children);
      		}
 	 	}
+	 	
+	 	
+	 	 public ResponseEntity<Dataset> etaPerPrestazione(@ApiParam(value = "prestazione(opzionale)") @Valid @RequestParam(value = "prestazione", required = false) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+	     {
+	             try {
+	             	
+	             	DBAPI dbapi = DBAPI.getInstance();
+	         		
+	         		BaseModel model = dbapi.etaPerPrestazioni(prestazione, startDate, endDate);
+	         		
+	         		Dataset dataset = new Dataset();
+	         		
+	         		dataset.labels(model.labels);
+	         		dataset.data(model.dataset);
+	         		
+	         		HttpHeaders headers = new HttpHeaders();
+	             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+	             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+	             	
+	                 return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+	             } catch (Exception e) {
+	                 log.error("Couldn't serialize response for content type application/json", e);
+	                 return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+	             }
+	     }
+	 	 
+	 	public ResponseEntity<Dataset> prestazioniPerEta(@ApiParam(value = "eta(opzionale)") @Valid @RequestParam(value = "eta", required = false) String eta, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+	     {
+	             try {
+	             	
+	             	DBAPI dbapi = DBAPI.getInstance();
+	         		
+	         		BaseModel model = dbapi.prestazioniPerEta(eta, startDate, endDate);
+	         		
+	         		Dataset dataset = new Dataset();
+	         		
+	         		dataset.labels(model.labels);
+	         		dataset.data(model.dataset);
+	         		
+	         		HttpHeaders headers = new HttpHeaders();
+	             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+	             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+	             	
+	                 return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+	             } catch (Exception e) {
+	                 log.error("Couldn't serialize response for content type application/json", e);
+	                 return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+	             }
+	     }
+	 	 
 }
