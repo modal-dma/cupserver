@@ -79,6 +79,30 @@ public class CUPApiController implements CUPApi {
                 return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
     }
+    
+    public ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+    {
+            try {
+            	
+            	DBAPI dbapi = DBAPI.getInstance();
+        		
+        		BaseModel model = dbapi.prestazioniAltreBranche(startDate, endDate);
+        		
+        		Dataset dataset = new Dataset();
+        		
+        		dataset.labels(model.labels);
+        		dataset.data(model.dataset);
+        		
+        		HttpHeaders headers = new HttpHeaders();
+            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+            	
+                return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+            } catch (Exception e) {
+                log.error("Couldn't serialize response for content type application/json", e);
+                return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+    }
 
     public ResponseEntity<Dataset> prestazioniBrancaNelTempo(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = false) String branca)
     {

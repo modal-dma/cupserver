@@ -190,7 +190,7 @@ public class DBAPI {
 		{
 	        Statement cmd = con.createStatement ();
 	 
-	        String qry = "SELECT descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, prestazioni WHERE sa_pre_id = codice AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, prestazioni WHERE sa_pre_id = codice AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        		
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";
@@ -228,6 +228,58 @@ public class DBAPI {
 		return null;
 	}
 	
+	public BaseModel prestazioniAltreBranche(String startData, String endData)
+	{
+		
+		try 
+		{
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        String qry = "SELECT prestazioni.descrizione, count(prestazioni.descrizione) AS count FROM altre_branche, prestazioni WHERE altre_branche.sa_pre_id::text = prestazioni.codice::text and (altre_branche.sa_stato_pren::text = 'N'::text OR altre_branche.sa_stato_pren::text IS NULL)";
+	        
+	        if(startData != null)
+	        	qry += " AND sa_data_pren >= '" + startData + "'";
+	        
+	        if(endData != null)
+	        	qry += " AND sa_data_pren <= '" + endData  + "'";
+	        		
+	        qry += "GROUP BY prestazioni.descrizione ORDER BY (count(prestazioni.descrizione)) DESC";
+	        	        
+	        System.out.println("query " + qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	 	        
+	        BaseModel model = new BaseModel();
+	        ArrayList<BigDecimal> values = new ArrayList<BigDecimal>();
+	        // Stampiamone i risultati riga per riga
+	        while (res.next()) 
+	        {
+	        	System.out.println(res.getString("descrizione"));
+	        	System.out.println(res.getString("count"));
+	        	
+//	        	if(res.getLong("count") > 120)
+//	        	{
+	        		model.labels.add(res.getString("descrizione"));
+	        		values.add(new BigDecimal(res.getLong("count")));
+//	        	}
+	        }
+		    
+	        model.dataset.add(values);
+	        
+	        res.close();
+		    cmd.close();
+		    
+		    return model;
+	    } 
+		catch (SQLException e) 
+		{
+	         e.printStackTrace();
+	    } 
+				
+		return null;
+	}
+	
 	public BaseModel prestazioniPerBranca(String comune, String startData, String endData)
 	{
 		
@@ -238,7 +290,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT branche.descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche" + (comune != null && !comune.equals("") ? ", quartieri " : " ") + "WHERE sa_branca_id = id_branca AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT branche.descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche" + (comune != null && !comune.equals("") ? ", quartieri " : " ") + "WHERE sa_branca_id = id_branca AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        		
 	        if(comune != null && !comune.equals(""))	        	        	
 	        	qry += " AND sa_comune_id = quartieri.codcomune AND quartieri.quartiere = '0' AND quartieri.descrizione = '" + comune + "'";
@@ -294,7 +346,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT branche.descrizione as branca, quartieri.descrizione as comune, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche, quartieri WHERE sa_branca_id = id_branca AND sa_comune_id = codcomune AND quartieri.quartiere = '0' AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT branche.descrizione as branca, quartieri.descrizione as comune, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche, quartieri WHERE sa_branca_id = id_branca AND dwh_mis_cup.sa_contratto_id like '%_1' and sa_comune_id = codcomune AND quartieri.quartiere = '0' AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        		
 	        		
 	        if(startData != null)
@@ -350,7 +402,7 @@ public class DBAPI {
 	        // in un oggetto ResultSet
 	        //String qry = "SELECT sa_data_ins, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND branche.descrizione = '" + branca + "' GROUP BY sa_data_ins ORDER BY sa_data_ins ASC";
 	        
-	        String qry = "SELECT date_trunc('month', sa_data_ins) as month, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND branche.descrizione = '" + branca + "' GROUP BY date_trunc('month', sa_data_ins) ORDER BY month ASC";
+	        String qry = "SELECT date_trunc('month', sa_data_ins) as month, COUNT(sa_data_ins) as val FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND branche.descrizione = '" + branca + "' GROUP BY date_trunc('month', sa_data_ins) ORDER BY month ASC";
 	        
 	        System.out.println("query " + qry);
 	        
@@ -712,7 +764,7 @@ public class DBAPI {
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
 	        // AND sa_gg_attesa < 400
-	        String qry = "SELECT descrizione, MIN(sa_gg_attesa) as min, MAX(sa_gg_attesa) as max, AVG(sa_gg_attesa) as avg FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND sa_gg_attesa > 0 AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT descrizione, MIN(sa_gg_attesa) as min, MAX(sa_gg_attesa) as max, AVG(sa_gg_attesa) as avg FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND sa_gg_attesa > 0 AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        
 	        if(comuneId != null && !comuneId.equals(""))	        
 	        	qry += " AND sa_comune_id = '" + comuneId + "'";
@@ -772,7 +824,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT descrizione, MIN(sa_gg_attesa_pdisp) as min, MAX(sa_gg_attesa_pdisp) as max, AVG(sa_gg_attesa_pdisp) as avg FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND sa_gg_attesa_pdisp > 0 AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT descrizione, MIN(sa_gg_attesa_pdisp) as min, MAX(sa_gg_attesa_pdisp) as max, AVG(sa_gg_attesa_pdisp) as avg FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND dwh_mis_cup.sa_contratto_id like '%_1' and sa_gg_attesa_pdisp > 0 AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        
 	        if(comuneId != null && !comuneId.equals(""))	        
 	        	qry += " AND sa_comune_id = '" + comuneId + "'";
@@ -834,7 +886,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT prestazioni.descrizione as prestazione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, prestazioni" + (comune != null && !comune.equals("") ? ", quartieri " : " ") + "WHERE sa_pre_id = codice AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        String qry = "SELECT prestazioni.descrizione as prestazione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, prestazioni" + (comune != null && !comune.equals("") ? ", quartieri " : " ") + "WHERE sa_pre_id = codice AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        		
 	        if(comune != null && !comune.equals(""))	        	        	
 	        	qry += " AND sa_comune_id = quartieri.codcomune AND quartieri.quartiere = '0' AND quartieri.descrizione = '" + comune + "'";
@@ -894,7 +946,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT quartieri.descrizione as descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, prestazioni WHERE sa_pre_id = codice AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND quartieri.quartiere = '0' AND sa_comune_id = quartieri.codcomune AND " + wherePrestazioni;
+	        String qry = "SELECT quartieri.descrizione as descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, prestazioni WHERE sa_pre_id = codice AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND quartieri.quartiere = '0' AND sa_comune_id = quartieri.codcomune AND " + wherePrestazioni;
 	        			        		
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";
@@ -978,7 +1030,7 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "SELECT quartieri.descrizione as descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, branche WHERE sa_branca_id = id_branca AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND quartieri.quartiere = '0' AND sa_comune_id = codcomune AND branche.descrizione = '" + branca + "'";
+	        String qry = "SELECT quartieri.descrizione as descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, branche WHERE sa_branca_id = id_branca AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND quartieri.quartiere = '0' AND sa_comune_id = codcomune AND branche.descrizione = '" + branca + "'";
 	        			        		
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";

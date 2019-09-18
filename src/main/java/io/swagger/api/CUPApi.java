@@ -48,6 +48,16 @@ public interface CUPApi {
         method = RequestMethod.GET)
     ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
+    @ApiOperation(value = "Prestazioni Altre Branche", nickname = "prestazioniAltreBranche", notes = "prestazioniAltreBranche ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prestazioniAltreBranche",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
+    
     @ApiOperation(value = "Prestazioni Per Branca per Comune", nickname = "prestazioniPerBrancaPerComune", notes = "prestazioniPerBrancaPerComune", response = Dataset3D.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
