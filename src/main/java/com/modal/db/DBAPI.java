@@ -2,13 +2,18 @@ package com.modal.db;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 
 import org.geonames.Toponym;
 import org.geonames.ToponymSearchCriteria;
@@ -1105,11 +1110,13 @@ public class DBAPI {
 	
 	public static class Item
 	{
+		public java.util.Date start;
 		public int count;
 		public HashMap<String, Item> children;
+		public ArrayList<Long> days;
 	}
 	
-	public HashMap<String, Item> pathPrestazioniNelTempo(String primaPrestazione, String startData, String endData)
+	public HashMap<String, Item> pathPrestazioniNelTempo(String primaPrestazione, String startData, String endData, int gender)
 	{		
 		try 
 		{
@@ -1120,20 +1127,33 @@ public class DBAPI {
 	        // in un oggetto ResultSet
 	        String qry = "SELECT assistito, prestazione, data_inserimento, data_appuntamento FROM branche_prestazioni_data_paziente";
 	        			        		
+	        if(gender != 0)
+	        {
+	        	qry +=  " where sesso = '" + gender + "'";
+	        }
+	        
 	        if(startData != null)
 	        	qry += " AND data_appuntamento >= '" + startData + "'";
 	        
 	        if(endData != null)
 	        	qry += " AND data_appuntamento <= '" + endData + "'";
 	        			        
-	        qry += " limit 100000";
+	        //qry += " limit 100000";
+	        
+	        System.out.println(qry);
 	        
 	        ResultSet res = cmd.executeQuery(qry);
 	 
 	        HashMap<String, Item> root = new HashMap<>();
 	        HashMap<String, Item> currentNode = root;
 	        
-	        int currentUser = 0;
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	        
+	        java.util.Date start = null;
+	        
+	        int currentUser = Integer.MIN_VALUE;
+	        Item parentItem = null;
+	        Item item = null;
 	        
 	        while (res.next()) 
 	        {
@@ -1142,14 +1162,39 @@ public class DBAPI {
         		
 	        	if(user != currentUser)
 	        	{
-	        		if(!primaPrestazione.equals(prestazione))
+	        		while(!res.isAfterLast() && !primaPrestazione.equals(prestazione))
+	        		{
+	        			int user1 = user;
+	        			while (user1 == user && res.next()) 
+	        	        {
+	        	        	user1 = res.getInt("assistito");	        	        	
+	        	        }
+	        		
+	        			user = user1;
+	        			if(!res.isAfterLast())
+	        				prestazione = res.getString("prestazione");
+	        		}
+	        		
+	        		if(res.isAfterLast())
 	        			continue;
+	        		
+//	        		if(currentUser == Integer.MIN_VALUE)
+//	        		{
+//	        			try {
+//							start = dateFormat.parse(res.getString("data_appuntamento"));
+//							System.out.println("data appuntamento " + start.toString());
+//						} catch (ParseException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//	        			
+//	        			
+//	        		}
 	        		
 	        		currentUser = user;
 	        		currentNode = root;
 	        	}
 	        		        		
-        		Item item;
         		if(currentNode.containsKey(prestazione))
         		{
         			item = currentNode.get(prestazione);	     
@@ -1157,11 +1202,41 @@ public class DBAPI {
         		}
         		else
         		{
+        			parentItem = item;
+        			//System.out.println("parentItem " + parentItem);
+        			
         			item = new Item();
+        			try {
+						item.start = dateFormat.parse(res.getString("data_appuntamento"));
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
         			item.count = 1;
+        			item.days = new ArrayList<>();
         			item.children = new HashMap<>();
         			currentNode.put(prestazione, item);
         		}	        			        		
+        		
+        		java.util.Date appuntamento;
+				try {
+					appuntamento = dateFormat.parse(res.getString("data_appuntamento"));
+					
+					long difference = parentItem != null ? (Math.abs(appuntamento.getTime() - parentItem.start.getTime())) : 0;
+	        	    long differenceDates = difference / (24 * 60 * 60 * 1000);
+	        	    
+	        	    item.days.add(new Long(differenceDates));
+	        	    	        	    	        	   
+//	        	    if(item.maxDay < differenceDates)
+//	        	    	item.maxDay = differenceDates;
+//	        	    
+//	        	    if(item.minDay > differenceDates)
+//	        	    	item.minDay = differenceDates;	        	    	       	        	    
+	        	    
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
         		
         		currentNode = item.children;
 	        }

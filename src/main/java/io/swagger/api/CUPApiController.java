@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2019-06-12T09:36:36.471Z")
 
 @Controller
@@ -489,20 +490,46 @@ public class CUPApiController implements CUPApi {
 		      }
 	 	}
 	 	
-	 	public ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+	 	public ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "gender (opzionale)") @Valid @RequestParam(value = "gender", required = false) String gender)
 	 	{
 	 		try {
 		      	
 		      	DBAPI dbapi = DBAPI.getInstance();
 		  		
-		      	HashMap<String, Item> root = dbapi.pathPrestazioniNelTempo(prestazione, startDate, endDate);
+		      	HashMap<String, Item> root = dbapi.pathPrestazioniNelTempo(prestazione, startDate, endDate, Integer.parseInt(gender));		      			      		
 		      	Item rootItem = ((Item)(root.get(prestazione)));
+		      	
+		      	if(rootItem == null)
+		      	{
+		      		HttpHeaders headers = new HttpHeaders();
+			      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+			      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+			      	
+			      	PathNode rootNode = new PathNode();
+			  		rootNode.name = prestazione;
+		  			rootNode.count = 0;		  		
+		  			rootNode.max = 0;	 			
+		  			rootNode.min = 0;
+		  			rootNode.average = 0;
+		  			rootNode.childrenCount = 0;
+		  			
+			        return new ResponseEntity<PathNode>(rootNode, headers, HttpStatus.OK);
+		      	}
+		      	
 		  		PathNode rootNode = new PathNode();
 		  		rootNode.name = prestazione;
 	  			rootNode.count = rootItem.count;
 	  			
-	  			populatePathNode(rootNode, rootItem.children);
+	  			LongSummaryStatistics stats = rootItem.days.stream()
+                        .mapToLong((x) -> x)
+                        .summaryStatistics();
 	  			
+	  			rootNode.max = (int)stats.getMax();	 			
+	  			rootNode.min = (int) stats.getMin();
+	  			rootNode.average = (int)stats.getAverage();
+	  			rootNode.childrenCount = rootItem.children.size();
+	  			
+	  			populatePathNode(rootNode, rootItem.children);	  				  		
 		  				  	
 		  		HttpHeaders headers = new HttpHeaders();
 		      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
@@ -525,7 +552,17 @@ public class CUPApiController implements CUPApi {
 	 			childNode.name = nodeName;
 	 			childNode.count = child.count;
 	 			
+	 			LongSummaryStatistics stats = child.days.stream()
+                        .mapToLong((x) -> x)
+                        .summaryStatistics();
+        	    
+	 			childNode.max = (int)stats.getMax();	 			
+	 			childNode.min = (int) stats.getMin();
+	 			childNode.average = (int)stats.getAverage();
+        	    
 	 			node.children.add(childNode);
+	 			
+	 			node.childrenCount = child.children.size();
 	 			
 	 			populatePathNode(childNode, child.children);
 	 			

@@ -21,6 +21,22 @@ public class PathNode {
 	  @Valid
 	  public int count;
 	  
+	  @JsonProperty("max")
+	  @Valid
+	  public int max = Integer.MAX_VALUE;
+	  
+	  @JsonProperty("min")
+	  @Valid
+	  public int min = Integer.MIN_VALUE;
+	  
+	  @JsonProperty("average")
+	  @Valid
+	  public int average;
+	  
+	  @JsonProperty("childrenCount")
+	  @Valid
+	  public int childrenCount;
+	  
 	  @JsonProperty("children")
 	  @Valid
 	  public List<PathNode> children = new ArrayList<PathNode>();
