@@ -490,13 +490,13 @@ public class CUPApiController implements CUPApi {
 		      }
 	 	}
 	 	
-	 	public ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "gender (opzionale)") @Valid @RequestParam(value = "gender", required = false) String gender)
+	 	public ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "gender (opzionale)") @Valid @RequestParam(value = "gender", required = false) String gender, @ApiParam(value = "limitUser (opzionale)") @Valid @RequestParam(value = "limitUser", required = false) Integer limitUser, @ApiParam(value = "anni (opzionale)") @Valid @RequestParam(value = "anni", required = false) Integer anni, @ApiParam(value = "eta (opzionale)") @Valid @RequestParam(value = "eta", required = false) String eta)
 	 	{
 	 		try {
 		      	
 		      	DBAPI dbapi = DBAPI.getInstance();
 		  		
-		      	HashMap<String, Item> root = dbapi.pathPrestazioniNelTempo(prestazione, startDate, endDate, Integer.parseInt(gender));		      			      		
+		      	HashMap<String, Item> root = dbapi.pathPrestazioniNelTempo(prestazione, startDate, endDate, Integer.parseInt(gender), limitUser != null ? limitUser.intValue() : 0, anni != null ? anni.intValue() : 0, eta);		      			      		
 		      	Item rootItem = ((Item)(root.get(prestazione)));
 		      	
 		      	if(rootItem == null)

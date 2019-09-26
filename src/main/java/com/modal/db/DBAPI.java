@@ -2,7 +2,6 @@ package com.modal.db;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +9,8 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
@@ -1116,7 +1117,7 @@ public class DBAPI {
 		public ArrayList<Long> days;
 	}
 	
-	public HashMap<String, Item> pathPrestazioniNelTempo(String primaPrestazione, String startData, String endData, int gender)
+	public HashMap<String, Item> pathPrestazioniNelTempo(String primaPrestazione, String startData, String endData, int gender, int limitUser, int anni, String eta)
 	{		
 		try 
 		{
@@ -1129,18 +1130,31 @@ public class DBAPI {
 	        			        		
 	        if(gender != 0)
 	        {
-	        	qry +=  " where sesso = '" + gender + "'";
+	        	qry +=  " where sesso = '" + gender + "' AND " ;
+	        }
+	        else
+	        {
+	        	qry +=  " where ";
 	        }
 	        
 	        if(startData != null)
-	        	qry += " AND data_appuntamento >= '" + startData + "'";
+	        {
+	        	int year = Integer.parseInt(startData);
+	        	qry += " data_appuntamento >= '01/01/" + startData + "' AND data_appuntamento <= '01/01/" + (year + anni) + "'";
+	        }
 	        
-	        if(endData != null)
-	        	qry += " AND data_appuntamento <= '" + endData + "'";
-	        			        
-	        //qry += " limit 100000";
+	        if(eta != null)
+	        {
+	        	qry += " AND eta_range = '" + eta + "'";
+	        }
+	        
+//	        if(endData != null)
+//	        	qry += " AND data_appuntamento <= '" + endData + "'";
+//	        			        
+	        //qry += " limit 800000";
 	        
 	        System.out.println(qry);
+	        System.out.println("limit user " + limitUser);
 	        
 	        ResultSet res = cmd.executeQuery(qry);
 	 
@@ -1149,19 +1163,25 @@ public class DBAPI {
 	        
 	        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	        
-	        java.util.Date start = null;
-	        
+	        Date startDate = null;
+   		 	     
+	        if(limitUser == 0)
+	        	limitUser = Integer.MAX_VALUE;
+	        	
+	        int userCount = 0;
 	        int currentUser = Integer.MIN_VALUE;
 	        Item parentItem = null;
 	        Item item = null;
-	        
-	        while (res.next()) 
+	        //System.out.println("anni " + anni);
+	        while (res.next() && userCount < limitUser)
 	        {
 	        	int user = res.getInt("assistito");
         		String prestazione = res.getString("prestazione");
         		
 	        	if(user != currentUser)
 	        	{
+	        		startDate = null;
+	        				
 	        		while(!res.isAfterLast() && !primaPrestazione.equals(prestazione))
 	        		{
 	        			int user1 = user;
@@ -1177,24 +1197,47 @@ public class DBAPI {
 	        		
 	        		if(res.isAfterLast())
 	        			continue;
+	        	
+	        		userCount++;
 	        		
-//	        		if(currentUser == Integer.MIN_VALUE)
-//	        		{
-//	        			try {
-//							start = dateFormat.parse(res.getString("data_appuntamento"));
-//							System.out.println("data appuntamento " + start.toString());
-//						} catch (ParseException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//	        			
-//	        			
-//	        		}
+	        		//System.out.println(userCount);	        			        	
 	        		
+	        			        		
 	        		currentUser = user;
 	        		currentNode = root;
+	        		
+	        		if(anni > 0)
+	        		{
+		        		try {
+							startDate = dateFormat.parse(res.getString("data_appuntamento"));							
+							System.out.println("data appuntamento " + startDate.toString());
+						} catch (ParseException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+	        		}
+	        		
 	        	}
-	        		        		
+	        	
+	        	if(startDate != null)
+        		{	        	
+	        		 try {
+		        		 Date currentDate = dateFormat.parse(res.getString("data_appuntamento"));
+		        		 
+		        		 long difference = currentDate.getTime() - startDate.getTime();
+		        		 
+		        		 long years = (difference / 1000) / 86400 / 365;
+		        		 
+		        		 System.out.println("years " + years);
+		        		 
+		        		 if(years > anni)
+		        			 continue;
+		        		 
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+        		}
         		if(currentNode.containsKey(prestazione))
         		{
         			item = currentNode.get(prestazione);	     

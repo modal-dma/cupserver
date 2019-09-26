@@ -183,7 +183,7 @@ public interface CUPApi {
     @RequestMapping(value = "/pathPrestazioniNelTempo",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "gender (opzionale)") @Valid @RequestParam(value = "gender", required = false) String gender);
+    ResponseEntity<PathNode> pathPrestazioniNelTempo(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "gender (opzionale)") @Valid @RequestParam(value = "gender", required = false) String gender, @ApiParam(value = "limitUser (opzionale)") @Valid @RequestParam(value = "limitUser", required = false) Integer limitUser, @ApiParam(value = "anni (opzionale)") @Valid @RequestParam(value = "anni", required = false) Integer anni, @ApiParam(value = "eta (opzionale)") @Valid @RequestParam(value = "eta", required = false) String eta);
 
     @ApiOperation(value = "etaPerPrestazione", nickname = "etaPerPrestazione", notes = "etaPerPrestazione", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
