@@ -57,6 +57,15 @@ public interface CUPApi {
         method = RequestMethod.GET)
     ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
+    @ApiOperation(value = "Prestazioni Conteggio", nickname = "prestazioniConteggio", notes = "prestazioniConteggio ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prestazioniConteggio",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+
     
     @ApiOperation(value = "Prestazioni Per Branca per Comune", nickname = "prestazioniPerBrancaPerComune", notes = "prestazioniPerBrancaPerComune", response = Dataset3D.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -120,7 +129,7 @@ public interface CUPApi {
     @RequestMapping(value = "/heatmapPrestazioni",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<ArrayList<HeatmapItem>> heatmapPrestazioni(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
+    ResponseEntity<ArrayList<HeatmapItem>> heatmapPrestazioni(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit, @ApiParam(value = "uop (opzionale)") @Valid @RequestParam(value = "uop", required = false) String uop);
 
     @ApiOperation(value = "Prestazioni", nickname = "prestazioni", notes = "prestazioni", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -212,5 +221,13 @@ public interface CUPApi {
         method = RequestMethod.GET)
     ResponseEntity<ArrayList<String>> eta();
     
+    @ApiOperation(value = "prestazioniPerUOPPerResidenza", nickname = "prestazioniPerUOPPerResidenza", notes = "prestazioniPerUOPPerResidenza", response = Dataset3D.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset3D.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prestazioniPerUOPPerResidenza",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount);
     
 }

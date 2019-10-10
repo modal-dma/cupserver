@@ -82,13 +82,13 @@
 		    <version>8.1-404.jdbc3</version>
 		</dependency>
         
-        <!-- https://mvnrepository.com/artifact/org.geonames/geonames -->
+		<!-- https://mvnrepository.com/artifact/org.geonames/geonames-ws-client -->
 		<dependency>
 		    <groupId>org.geonames</groupId>
-		    <artifactId>geonames</artifactId>
-		    <version>1.0</version>
+		    <artifactId>geonames-ws-client</artifactId>
+		    <version>1.1.9</version>
 		</dependency>
-	        
-        
+
+	    
     </dependencies>
 </project>

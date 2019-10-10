@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.DoubleSummaryStatistics;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
@@ -29,6 +30,7 @@ import io.swagger.model.HeatmapItem;
 public class DBAPI {
 
 	private static final String url = "jdbc:postgresql://192.168.1.20/cup";
+	//private static final String url = "jdbc:postgresql://192.167.11.69:4532/cup";
 	private static final String user = "postgres";
 	private static final String password = "modal@1618!";
 
@@ -36,6 +38,8 @@ public class DBAPI {
 	
 	private Connection con;
 	
+	private static HashMap<String, Toponym> geoplaceMap = new HashMap<>();
+
 	public static DBAPI getInstance()
 	{
 		if(instance == null)
@@ -286,6 +290,58 @@ public class DBAPI {
 		return null;
 	}
 	
+	public BaseModel prestazioniConteggio(String startData, String endData)
+	{
+		
+		try 
+		{
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        String qry = "SELECT descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, prestazioni WHERE sa_pre_id = codice AND dwh_mis_cup.sa_contratto_id like '%_1' and (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
+	        	       
+	        if(startData != null)
+	        	qry += " AND sa_data_pren >= '" + startData + "'";
+	        
+	        if(endData != null)
+	        	qry += " AND sa_data_pren <= '" + endData  + "'";
+	        		
+	        qry += "GROUP BY descrizione ORDER BY val DESC";
+	        	        
+	        System.out.println("query " + qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	 	        
+	        BaseModel model = new BaseModel();
+	        ArrayList<BigDecimal> values = new ArrayList<BigDecimal>();
+	        // Stampiamone i risultati riga per riga
+	        while (res.next()) 
+	        {
+	        	System.out.println(res.getString("descrizione"));
+	        	System.out.println(res.getString("val"));
+	        	
+//	        	if(res.getLong("count") > 120)
+//	        	{
+	        		model.labels.add(res.getString("descrizione"));
+	        		values.add(new BigDecimal(res.getLong("val")));
+//	        	}
+	        }
+		    
+	        model.dataset.add(values);
+	        
+	        res.close();
+		    cmd.close();
+		    
+		    return model;
+	    } 
+		catch (SQLException e) 
+		{
+	         e.printStackTrace();
+	    } 
+				
+		return null;
+	}
+	
 	public BaseModel prestazioniPerBranca(String comune, String startData, String endData)
 	{
 		
@@ -393,6 +449,70 @@ public class DBAPI {
 	         e.printStackTrace();
 	    } 
 				
+		return null;
+	}
+	
+	public BaseModel3D prestazioniPerUOPPerComune(String prestazione, String startData, String endData, int minCount)
+	{		
+		try 
+		{
+			String wherePrestazioni = "( prestazioni.descrizione = '" + prestazione.replace("'",  "''") + "')";
+			
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        // Eseguiamo una query e immagazziniamone i risultati
+	        // in un oggetto ResultSet
+	        //AND (NOT dec_unita_eroganti.struttura_comune = sa_comune_id) 
+	        //select * from dwh_mis_cup, dec_unita_eroganti, quartieri where dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id and dec_unita_eroganti.struttura_comune = codcomune
+	        String qry = "SELECT quartieri.descrizione as comune_asl, sa_comune_id as id_residenza, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, prestazioni, dec_unita_eroganti WHERE "  + wherePrestazioni + " AND quartieri.quartiere = '0' AND dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id AND dec_unita_eroganti.struttura_comune = codcomune AND (NOT dec_unita_eroganti.struttura_comune = sa_comune_id) AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND sa_pre_id = codice  GROUP BY comune_asl, sa_comune_id ORDER BY val desc";
+	        			        		
+	        if(startData != null)
+	        	qry += " AND sa_data_pren >= '" + startData + "'";
+	        
+	        if(endData != null)
+	        	qry += " AND sa_data_pren <= '" + endData + "'";
+	        			        
+	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where id_residenza = quartieri.codcomune AND quartieri.quartiere = '0'";
+
+	        System.out.println(qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	        
+	        BaseModel3D model = new BaseModel3D();
+	        ArrayList<BigDecimal> values = new ArrayList<BigDecimal>();
+	        // Stampiamone i risultati riga per riga
+	        while (res.next()) 
+	        {
+	        	
+	        	
+	        	long val = res.getLong("val");
+	        	//if(val > 10)
+	        	//{
+		        	Point3D point = new Point3D();
+		        	
+		        	point.xLabel = res.getString("comune_asl");
+		        	point.yLabel = res.getString("residenza");
+		        	point.val = new BigDecimal(val);
+		        	
+		        	model.points.add(point);
+		        	
+		        	System.out.println(res.getString("comune_asl"));
+		        	System.out.println(res.getString("residenza"));
+		        	System.out.println(res.getString("val"));
+	        	//}
+	        }
+	        
+	        res.close();
+		    cmd.close();
+		    
+		    return model;
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
 		return null;
 	}
 	
@@ -984,7 +1104,12 @@ public class DBAPI {
 	        	try
 	        	{
 		        	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-		      	  	searchCriteria.setQ(descrizione);
+		      	  	searchCriteria.setNameStartsWith(descrizione);// + ", campania");
+		      	  	//searchCriteria.setCountryBias("it");
+		      	  	searchCriteria.setLanguage("it");
+		      	  	searchCriteria.setFeatureCode("ADM3");
+		      	  	//searchCriteria.setCountryCode("it");
+		      	  	
 		      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
 		      	  	
 		      	  	List<Toponym> toponyms = searchResult.getToponyms();
@@ -1025,6 +1150,296 @@ public class DBAPI {
 	    } 
 				
 		return null;
+	}
+	
+	public ArrayList<HeatmapItem> heatmapPrestazioniUOP(String prestazioni, String startData, String endData, int limit)
+	{		
+		try 
+		{
+			String prestazione[] = prestazioni.split(";");
+			
+			String wherePrestazioni = "( prestazioni.descrizione = '" + prestazione[0].replace("'",  "''") + "'";
+			for(int i = 1; i < prestazione.length; i++)
+			{
+				wherePrestazioni += " OR prestazioni.descrizione = '" + prestazione[i].replace("'",  "''") + "'";
+			}
+			
+			wherePrestazioni += " )";
+			
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        // Eseguiamo una query e immagazziniamone i risultati
+	        // in un oggetto ResultSet
+	        //select * from dwh_mis_cup, dec_unita_eroganti, quartieri where dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id and dec_unita_eroganti.struttura_comune = codcomune
+	        String qry = "SELECT quartieri.descrizione as descrizione, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, prestazioni, dec_unita_eroganti WHERE quartieri.quartiere = '0' AND dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id AND dec_unita_eroganti.struttura_comune = codcomune AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND sa_pre_id = codice AND " + wherePrestazioni;
+	        			        		
+	        if(startData != null)
+	        	qry += " AND sa_data_pren >= '" + startData + "'";
+	        
+	        if(endData != null)
+	        	qry += " AND sa_data_pren <= '" + endData + "'";
+	        		
+	        qry += " GROUP BY quartieri.descrizione ORDER BY val DESC";
+	        
+	        System.out.println(qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	 
+	        ArrayList<HeatmapItem> values = new ArrayList<HeatmapItem>();
+	        
+	        // Stampiamone i risultati riga per riga
+	        
+	        WebService.setUserName("ugos"); // add your username here
+	        WebService.setGeoNamesServer("http://api.geonames.org");
+	        int i = limit;
+	        while (i > 0 && res.next()) 
+	        {
+	        	//System.out.println(res.getString("descrizione"));
+	        	//System.out.println(res.getString("val"));
+	        	
+	        	String descrizione = res.getString("descrizione");
+	        	int count = res.getInt("val");
+	        	//System.out.println("count " + count);
+	        	try
+	        	{
+		        	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
+		      	  	searchCriteria.setNameStartsWith(descrizione);// + ", campania");
+		      	  	searchCriteria.setLanguage("it");
+		      	  	//searchCriteria.setAdminCode1("3181042");
+		      	  	searchCriteria.setFeatureCode("ADM3");
+		      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
+		      	  	
+		      	  	List<Toponym> toponyms = searchResult.getToponyms();
+		      	  	
+		      	  	if(toponyms.size() > 0)
+		      	  	{
+
+			      	  	Toponym toponym = toponyms.get(0);
+			      	  	
+			      		  //System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
+		
+			      		  HeatmapItem item = new HeatmapItem();
+			      		  
+			      		  item.lat = toponym.getLatitude();
+			      		  item.lon = toponym.getLongitude();
+			      		  item.weight = count;
+			      		  item.name = descrizione;
+			      		  
+			      		  values.add(item);
+			      	}	        		        		        		     
+	        	}
+	        	catch(Exception ex)
+	        	{
+	        		ex.printStackTrace();
+	        	}
+	        	
+	        	i--;
+	        }
+		    	        		    	        
+	        res.close();
+		    cmd.close();
+		    
+		    return values;
+	    } 
+		catch (SQLException e) 
+		{
+	         e.printStackTrace();
+	    } 
+				
+		return null;
+	}
+	
+	public ArrayList<HeatmapItem> heatmapPrestazioniUOPEx(String prestazioni, String startData, String endData, int limit)
+	{		
+		try 
+		{
+			String prestazione[] = prestazioni.split(";");
+			
+			String wherePrestazioni = "( prestazioni.descrizione = '" + prestazione[0].replace("'",  "''") + "'";
+			for(int i = 1; i < prestazione.length; i++)
+			{
+				wherePrestazioni += " OR prestazioni.descrizione = '" + prestazione[i].replace("'",  "''") + "'";
+			}
+			
+			wherePrestazioni += " )";
+			
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        // Eseguiamo una query e immagazziniamone i risultati
+	        // in un oggetto ResultSet
+	        //AND (NOT dec_unita_eroganti.struttura_comune = sa_comune_id) 
+	        //select * from dwh_mis_cup, dec_unita_eroganti, quartieri where dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id and dec_unita_eroganti.struttura_comune = codcomune
+	        String qry = "SELECT quartieri.descrizione as comune_asl, sa_comune_id as id_residenza, COUNT(sa_data_ins) as val FROM dwh_mis_cup, quartieri, prestazioni, dec_unita_eroganti WHERE "  + wherePrestazioni + " AND quartieri.quartiere = '0' AND dwh_mis_cup.sa_uop_codice_id = dec_unita_eroganti.sa_uop_codice_id AND dec_unita_eroganti.struttura_comune = codcomune AND (NOT dec_unita_eroganti.struttura_comune = sa_comune_id) AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null) AND sa_pre_id = codice  GROUP BY comune_asl, sa_comune_id ORDER BY val desc";
+	        			        		
+	        if(startData != null)
+	        	qry += " AND sa_data_pren >= '" + startData + "'";
+	        
+	        if(endData != null)
+	        	qry += " AND sa_data_pren <= '" + endData + "'";
+	        			        
+	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where id_residenza = quartieri.codcomune";
+
+	        System.out.println(qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	 	        
+	        HashMap<String, HeatmapItem> heatmapItemMap = new HashMap<>();
+	        
+	        // Stampiamone i risultati riga per riga
+	       	        
+	        WebService.setUserName("ugos"); // add your username here
+	        WebService.setGeoNamesServer("http://api.geonames.org");
+	        int i = limit;
+	        while (i > 0 && res.next()) 
+	        {
+	        	//System.out.println(res.getString("descrizione"));
+	        	//System.out.println(res.getString("val"));
+	        	
+	        	try
+	        	{
+		        	String residenza = res.getString("residenza");
+		        	String comune_asl = res.getString("comune_asl");
+		        	
+		        	Toponym residenzaToponym = null;
+		        	Toponym comuneAslToponym = null;
+		        	
+		        	if(geoplaceMap.containsKey(residenza))
+		        	{
+		        		residenzaToponym = geoplaceMap.get(residenza);	        		
+		        	}
+		        	else
+		        	{
+		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
+			      	  	searchCriteria.setNameStartsWith(residenza);// + ", campania");
+			      	  	searchCriteria.setLanguage("it");
+			      	  	//searchCriteria.setAdminCode1("3181042");
+			      	  	searchCriteria.setFeatureCode("ADM3");
+			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
+			      	  	
+			      	  	List<Toponym> toponyms = searchResult.getToponyms();
+			      	  	
+			      	  	if(toponyms.size() > 0)
+			      	  	{
+			      	  		residenzaToponym = toponyms.get(0);
+			      	  		geoplaceMap.put(residenza, residenzaToponym);			      	  	
+			      	  	}	        		
+		        	}
+	        	
+		        	if(geoplaceMap.containsKey(comune_asl))
+		        	{
+		        		comuneAslToponym = geoplaceMap.get(comune_asl);	        		
+		        	}
+		        	else
+		        	{
+		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
+			      	  	searchCriteria.setNameStartsWith(comune_asl);// + ", campania");
+			      	  	searchCriteria.setLanguage("it");
+			      	  	//searchCriteria.setAdminCode1("3181042");
+			      	  	searchCriteria.setFeatureCode("ADM3");
+			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
+			      	  	
+			      	  	List<Toponym> toponyms = searchResult.getToponyms();
+			      	  	
+			      	  	if(toponyms.size() > 0)
+			      	  	{
+			      	  		comuneAslToponym = toponyms.get(0);
+			      	  		geoplaceMap.put(comune_asl, comuneAslToponym);			      	  	
+			      	  	}	        		
+		        	}
+		        		        		      		        	
+		        	if(comuneAslToponym != null && residenzaToponym != null)
+		        	{
+		        		  int count = res.getInt("val");
+		        		  HeatmapItem item;
+		        		  if(heatmapItemMap.containsKey(comune_asl))
+		        		  {
+		        			  item = heatmapItemMap.get(comune_asl);
+		        			  item.weight += count;
+		        		  }
+		        		  else
+		        		  {
+		        			  item = new HeatmapItem();
+		        		  
+				      		  item.lat = comuneAslToponym.getLatitude();
+				      		  item.lon = comuneAslToponym.getLongitude();
+				      		  item.weight = count;
+				      		  item.name = comune_asl;
+				      		  item.distanceArray = new ArrayList<>();  
+				      		  heatmapItemMap.put(comune_asl, item);
+		        		  }
+		        		  
+		        		  double distance = distance(item.lat, item.lon, 0, residenzaToponym.getLatitude(), residenzaToponym.getLongitude(), 0);
+		        		  
+		        		  if(distance > item.maxDistance)
+		        		  {
+		        			  item.maxDistance = distance;
+		        			  item.maxComune = residenza;
+		        		  }
+		        		  
+			      		  item.distanceArray.add(distance);			      		  
+			      	}	        		        		        		     
+	        	}
+	        	catch(Exception ex)
+	        	{
+	        		ex.printStackTrace();
+	        	}
+	        	
+	        	i--;
+	        }
+		    	        		    	        
+	        res.close();
+		    cmd.close();
+		    
+		    for(HeatmapItem item : heatmapItemMap.values())
+		    {
+		    	DoubleSummaryStatistics stats = item.distanceArray.stream()
+                        .mapToDouble((x) -> x)
+                        .summaryStatistics();
+        	    
+		    	item.maxDistance = (int)stats.getMax();	 			
+	 			item.minDistance = (int) stats.getMin();
+	 			item.averageDistance = (int)stats.getAverage();	 			
+		    }
+		    
+		    return new ArrayList<HeatmapItem>(heatmapItemMap.values());
+	    } 
+		catch (SQLException e) 
+		{
+	         e.printStackTrace();
+	    } 
+				
+		return null;
+	}
+	
+	/**
+	 * Calculate distance between two points in latitude and longitude taking
+	 * into account height difference. If you are not interested in height
+	 * difference pass 0.0. Uses Haversine method as its base.
+	 * 
+	 * lat1, lon1 Start point lat2, lon2 End point el1 Start altitude in meters
+	 * el2 End altitude in meters
+	 * @returns Distance in Meters
+	 */
+	public static double distance(double lat1, double lon1, double el1, double lat2, 
+	        double lon2, double el2) {
+
+	    final int R = 6371; // Radius of the earth
+
+	    double latDistance = Math.toRadians(lat2 - lat1);
+	    double lonDistance = Math.toRadians(lon2 - lon1);
+	    double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+	            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+	            * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	    double distance = R * c * 1000; // convert to meters
+
+	    double height = el1 - el2;
+
+	    distance = Math.pow(distance, 2) + Math.pow(height, 2);
+
+	    return Math.sqrt(distance) / 1000;
 	}
 	
 	public ArrayList<HeatmapItem> heatmapBranche(String branca, String startData, String endData, int limit)

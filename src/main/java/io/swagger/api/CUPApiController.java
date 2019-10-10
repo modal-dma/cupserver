@@ -81,6 +81,30 @@ public class CUPApiController implements CUPApi {
             }
     }
     
+    public ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+    {
+            try {
+            	
+            	DBAPI dbapi = DBAPI.getInstance();
+        		
+        		BaseModel model = dbapi.prestazioniConteggio(startDate, endDate);
+        		
+        		Dataset dataset = new Dataset();
+        		
+        		dataset.labels(model.labels);
+        		dataset.data(model.dataset);
+        		
+        		HttpHeaders headers = new HttpHeaders();
+            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+            	
+                return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+            } catch (Exception e) {
+                log.error("Couldn't serialize response for content type application/json", e);
+                return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+    }
+    
     public ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
     {
             try {
@@ -343,15 +367,21 @@ public class CUPApiController implements CUPApi {
 	            }
 	    }
 	 
-	 	public ResponseEntity<ArrayList<HeatmapItem>> heatmapPrestazioni(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
+	 	public ResponseEntity<ArrayList<HeatmapItem>> heatmapPrestazioni(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit, @ApiParam(value = "uop (opzionale)") @Valid @RequestParam(value = "uop", required = false) String uop)
 	    {
 	            try {
 	            	
 	            	DBAPI dbapi = DBAPI.getInstance();
 	        		
-	            	ArrayList<HeatmapItem> heatmap = dbapi.heatmapPrestazioni(prestazione, startDate, endDate, limit != null ? limit.intValue() : 0);
-	        		
-	        		
+	            	ArrayList<HeatmapItem> heatmap;
+	            	
+	            	if(uop != null && uop.equals("nonresidenti"))
+	            		heatmap = dbapi.heatmapPrestazioniUOPEx(prestazione, startDate, endDate, limit != null ? limit.intValue() : 0);
+	            	else if(uop != null && uop.equals("residenza"))
+	            		heatmap = dbapi.heatmapPrestazioniUOP(prestazione, startDate, endDate, limit != null ? limit.intValue() : 0);
+	            	else
+	            		heatmap = dbapi.heatmapPrestazioni(prestazione, startDate, endDate, limit != null ? limit.intValue() : 0);
+	        			        		
 	        		HttpHeaders headers = new HttpHeaders();
 	            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 	            	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
@@ -631,5 +661,43 @@ public class CUPApiController implements CUPApi {
 	                 return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
 	             }
 	     }
+	 	
+	 	public ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount)
+	 	{
+	 		try {
+		      	
+		      	DBAPI dbapi = DBAPI.getInstance();
+		  		
+		  		BaseModel3D model = dbapi.prestazioniPerUOPPerComune(prestazione, startDate, endDate, minCount);
+		  				  				  		
+		  		Dataset3D dataset = new Dataset3D();
+	     		
+		  		//int limit = (int)((float)model.points.size() * 0.7f);
+		  		
+		  		for(int i = 0; i < model.points.size(); i++)
+		  		{
+		  			Point3D p = model.points.get(i);
+	     		
+	     			if(p.val.longValue() > minCount)
+	     			{
+		     			Value3D value = new Value3D();
+		     			value.x = p.xLabel;
+		     			value.y = p.yLabel;
+		     			value.value = p.val;
+		     			
+		     			dataset.values.add(value);
+	     			}
+	     		}
+	     		
+	     		HttpHeaders headers = new HttpHeaders();
+	         	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+	         	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+	         	
+	             return new ResponseEntity<Dataset3D>(dataset, headers, HttpStatus.OK);
+	         } catch (Exception e) {
+	             log.error("Couldn't serialize response for content type application/json", e);
+	             return new ResponseEntity<Dataset3D>(HttpStatus.INTERNAL_SERVER_ERROR);
+	         }
+	 	}
 	 	 
 }

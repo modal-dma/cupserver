@@ -1,5 +1,7 @@
 package io.swagger.model;
 
+import java.util.ArrayList;
+
 import javax.validation.Valid;
 
 import org.springframework.validation.annotation.Validated;
@@ -25,4 +27,22 @@ public class HeatmapItem {
 	@JsonProperty("name")
 	@Valid		
 	public String name;
+	
+	@JsonProperty("averageDistance")
+	@Valid
+	public double averageDistance;
+	
+	@JsonProperty("minDistance")
+	@Valid
+	public double minDistance;
+	
+	@JsonProperty("maxDistance")
+	@Valid
+	public double maxDistance;
+	
+	@JsonProperty("maxComune")
+	@Valid
+	public String maxComune;
+	
+	public ArrayList<Double> distanceArray;
 }
