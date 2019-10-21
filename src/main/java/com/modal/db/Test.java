@@ -34,7 +34,7 @@ public class Test {
 	{
 		DBAPI dbapi = DBAPI.getInstance();
 		
-		BaseModel model = dbapi.prestazioniPerBranca(null, "01/01/2017", "31/12/2017");
+		BaseModel model = dbapi.prestazioniPerBranca(null, "01/01/2017", "31/12/2017", 10);
 		
 		System.out.println(model.labels);
 		

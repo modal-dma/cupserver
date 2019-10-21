@@ -18,6 +18,7 @@ public class BaseModel3D {
 		public String xLabel;
 		public String yLabel;
 		public BigDecimal val;
+		public BigDecimal weight;
 		
 		public String toString()
 		{

@@ -46,7 +46,7 @@ public interface CUPApi {
     @RequestMapping(value = "/prestazioniPerBranca",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+    ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue);
 
     @ApiOperation(value = "Prestazioni Altre Branche", nickname = "prestazioniAltreBranche", notes = "prestazioniAltreBranche ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -228,6 +228,6 @@ public interface CUPApi {
     @RequestMapping(value = "/prestazioniPerUOPPerResidenza",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount);
+    ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "comune(opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount);
     
 }

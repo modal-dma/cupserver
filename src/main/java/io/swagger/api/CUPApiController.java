@@ -57,13 +57,13 @@ public class CUPApiController implements CUPApi {
         this.request = request;
     }
 
-    public ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+    public ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue)
     {
             try {
             	
             	DBAPI dbapi = DBAPI.getInstance();
         		
-        		BaseModel model = dbapi.prestazioniPerBranca(comune, startDate, endDate);
+        		BaseModel model = dbapi.prestazioniPerBranca(comune, startDate, endDate, minValue);
         		
         		Dataset dataset = new Dataset();
         		
@@ -662,13 +662,13 @@ public class CUPApiController implements CUPApi {
 	             }
 	     }
 	 	
-	 	public ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount)
+	 	public ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "comune(opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount)
 	 	{
 	 		try {
 		      	
 		      	DBAPI dbapi = DBAPI.getInstance();
 		  		
-		  		BaseModel3D model = dbapi.prestazioniPerUOPPerComune(prestazione, startDate, endDate, minCount);
+		  		BaseModel3D model = dbapi.prestazioniPerUOPPerComune(prestazione, comune, minCount);
 		  				  				  		
 		  		Dataset3D dataset = new Dataset3D();
 	     		
@@ -684,6 +684,7 @@ public class CUPApiController implements CUPApi {
 		     			value.x = p.xLabel;
 		     			value.y = p.yLabel;
 		     			value.value = p.val;
+		     			value.weight = p.weight;
 		     			
 		     			dataset.values.add(value);
 	     			}
