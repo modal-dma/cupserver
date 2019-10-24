@@ -323,20 +323,48 @@ public class CUPApiController implements CUPApi {
 	      }
 	}
 	
+	public ResponseEntity<Dataset> etaEx() 
+	{
+	      try {
+	      	
+	      	DBAPI dbapi = DBAPI.getInstance();
+	  		
+	      	BaseModel model = dbapi.eta();
+	  		
+	      	Dataset dataset = new Dataset();
+    		
+    		dataset.labels(model.labels);
+    		dataset.data(model.dataset);
+	      	
+	  		HttpHeaders headers = new HttpHeaders();
+	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+	      	
+	      	return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+	      		          
+	      } catch (Exception e) {
+	          log.error("Couldn't serialize response for content type application/json", e);
+	          return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+	      }
+	}
+	
 	public ResponseEntity<ArrayList<String>> eta() 
 	{
 	      try {
 	      	
 	      	DBAPI dbapi = DBAPI.getInstance();
 	  		
-	      	ArrayList<String> comuniList = dbapi.eta();
+	      	BaseModel model = dbapi.eta();
+	  		
+	      	
+	      	ArrayList<String> etaList = model.labels;
 	  		
 	  		
 	  		HttpHeaders headers = new HttpHeaders();
 	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 	      	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
 	      	
-	          return new ResponseEntity<ArrayList<String>>(comuniList, headers, HttpStatus.OK);
+	          return new ResponseEntity<ArrayList<String>>(etaList, headers, HttpStatus.OK);
 	      } catch (Exception e) {
 	          log.error("Couldn't serialize response for content type application/json", e);
 	          return new ResponseEntity<ArrayList<String>>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -701,4 +729,27 @@ public class CUPApiController implements CUPApi {
 	         }
 	 	}
 	 	 
+	 	public ResponseEntity<Dataset> prestazioniNelTempo()
+	 	{
+	 		try {
+             	
+             	DBAPI dbapi = DBAPI.getInstance();
+         		
+         		BaseModel model = dbapi.prestazioniNelTempo();
+         		
+         		Dataset dataset = new Dataset();
+         		
+         		dataset.labels(model.labels);
+         		dataset.data(model.dataset);
+         		
+         		HttpHeaders headers = new HttpHeaders();
+             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+             	headers.add(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST");
+             	
+                 return new ResponseEntity<Dataset>(dataset, headers, HttpStatus.OK);
+             } catch (Exception e) {
+                 log.error("Couldn't serialize response for content type application/json", e);
+                 return new ResponseEntity<Dataset>(HttpStatus.INTERNAL_SERVER_ERROR);
+             }
+	 	}
 }

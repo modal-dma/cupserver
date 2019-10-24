@@ -221,6 +221,15 @@ public interface CUPApi {
         method = RequestMethod.GET)
     ResponseEntity<ArrayList<String>> eta();
     
+    @ApiOperation(value = "etaEx", nickname = "etaEx", notes = "etExa", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/etaEx",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> etaEx();
+    
     @ApiOperation(value = "prestazioniPerUOPPerResidenza", nickname = "prestazioniPerUOPPerResidenza", notes = "prestazioniPerUOPPerResidenza", response = Dataset3D.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "related dataset", response = Dataset3D.class, responseContainer = "List"),
@@ -229,5 +238,14 @@ public interface CUPApi {
         produces = { "application/json" }, 
         method = RequestMethod.GET)
     ResponseEntity<Dataset3D> prestazioniPerUOPPerResidenza(@ApiParam(value = "prestazione") @Valid @RequestParam(value = "prestazione", required = true) String prestazione, @ApiParam(value = "comune(opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "minCount (opzionale)") @Valid @RequestParam(value = "minCount", required = false) Integer minCount);
+    
+    @ApiOperation(value = "prestazioniNelTempo", nickname = "prestazioniNelTempo", notes = "prestazioniNelTempo", response = Dataset.class, responseContainer = "List", tags={ "developers", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "related dataset", response = Dataset.class, responseContainer = "List"),
+        @ApiResponse(code = 400, message = "bad input parameter") })
+    @RequestMapping(value = "/prestazioniNelTempo",
+        produces = { "application/json" }, 
+        method = RequestMethod.GET)
+    ResponseEntity<Dataset> prestazioniNelTempo();
     
 }

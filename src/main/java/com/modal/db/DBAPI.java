@@ -162,29 +162,33 @@ public class DBAPI {
 		return null;
 	}
 	
-	public ArrayList<String> eta()
+	public BaseModel eta()
 	{		
 		try 
 		{
 	        Statement cmd = con.createStatement ();
 	 
-	        String qry = "SELECT eta FROM distribuzione_eta";
+	        String qry = "SELECT * FROM distribuzione_eta";
 	        			        		
 	        System.out.println("query " + qry);
 	        
-	        ResultSet res = cmd.executeQuery(qry);
-	 	        
-	        ArrayList<String> values = new ArrayList<String>();
+	        ResultSet res = cmd.executeQuery(qry);	      
+	        
+	        BaseModel model = new BaseModel();
+	        ArrayList<BigDecimal> values = new ArrayList<BigDecimal>();
 	        // Stampiamone i risultati riga per riga
 	        while (res.next()) 
 	        {
-	        	values.add(res.getString("eta"));
+        		model.labels.add(res.getString("eta"));
+        		values.add(new BigDecimal(res.getLong("count")));
 	        }
-		    	        
+		    
+	        model.dataset.add(values);
+	        	        
 	        res.close();
 		    cmd.close();
 		    
-		    return values;
+		    return model;
 	    } 
 		catch (SQLException e) 
 		{
@@ -273,6 +277,52 @@ public class DBAPI {
 	        		model.labels.add(res.getString("descrizione"));
 	        		values.add(new BigDecimal(res.getLong("count")));
 //	        	}
+	        }
+		    
+	        model.dataset.add(values);
+	        
+	        res.close();
+		    cmd.close();
+		    
+		    return model;
+	    } 
+		catch (SQLException e) 
+		{
+	         e.printStackTrace();
+	    } 
+				
+		return null;
+	}
+	
+	public BaseModel prestazioniNelTempo()
+	{
+		
+		try 
+		{
+		    // Creiamo un oggetto Statement per poter interrogare il db
+	        Statement cmd = con.createStatement ();
+	 
+	        String qry = "SELECT * FROM prestazioni_nel_tempo";
+	        	        
+	        System.out.println("query " + qry);
+	        
+	        ResultSet res = cmd.executeQuery(qry);
+	 	        
+	        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+	        
+	        BaseModel model = new BaseModel();
+	        ArrayList<BigDecimal> values = new ArrayList<BigDecimal>();
+	        // Stampiamone i risultati riga per riga
+	        while (res.next()) 
+	        {
+	        	System.out.println(res.getString("data_appuntamento"));
+	        	System.out.println(res.getString("count"));
+	        	
+	        	Date d = res.getDate("data_appuntamento");
+	        	
+	        	
+        		model.labels.add(sdf.format(d));
+        		values.add(new BigDecimal(res.getLong("count")));
 	        }
 		    
 	        model.dataset.add(values);
@@ -551,7 +601,10 @@ public class DBAPI {
 			      	  	}	        		
 		        	}
 		        		        		      		        	
-		        	double distance = distance(comuneAslToponym.getLatitude(), comuneAslToponym.getLongitude(), 0, residenzaToponym.getLatitude(), residenzaToponym.getLongitude(), 0);
+		        	double distance = -1;
+		        	
+		        	if(comuneAslToponym != null && residenzaToponym != null)
+		        		distance = distance(comuneAslToponym.getLatitude(), comuneAslToponym.getLongitude(), 0, residenzaToponym.getLatitude(), residenzaToponym.getLongitude(), 0);
 		        	
 		        	point.weight = new BigDecimal(distance);
 		        			        
