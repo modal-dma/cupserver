@@ -59,6 +59,9 @@ public class DBAPI {
 		    // Creiamo la stringa di connessione
 		    // Otteniamo una connessione con username e password
 		    con = DriverManager.getConnection (url, user, password);
+		    
+		    WebService.setUserName("ugos"); // add your username here
+	        WebService.setGeoNamesServer("http://api.geonames.org");
 		}
 		catch(ClassNotFoundException ex)
 		{
@@ -553,54 +556,9 @@ public class DBAPI {
 		        	point.yLabel = res.getString("residenza");
 		        	point.val = new BigDecimal(val);
 		        	
-		        	
-		        	Toponym residenzaToponym = null;
-		        	Toponym comuneAslToponym = null;
-		        	
-		        	if(geoplaceMap.containsKey(point.yLabel))
-		        	{
-		        		residenzaToponym = geoplaceMap.get(point.yLabel);	        		
-		        	}
-		        	else
-		        	{
-		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-			      	  	searchCriteria.setNameStartsWith(point.yLabel);// + ", campania");
-			      	  	searchCriteria.setLanguage("it");
-			      	  	//searchCriteria.setAdminCode1("3181042");
-			      	  	searchCriteria.setFeatureCode("ADM3");
-			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-			      	  	
-			      	  	List<Toponym> toponyms = searchResult.getToponyms();
-			      	  	
-			      	  	if(toponyms.size() > 0)
-			      	  	{
-			      	  		residenzaToponym = toponyms.get(0);
-			      	  		geoplaceMap.put(point.yLabel, residenzaToponym);			      	  	
-			      	  	}	        		
-		        	}
-	        	
-		        	if(geoplaceMap.containsKey(point.xLabel))
-		        	{
-		        		comuneAslToponym = geoplaceMap.get(point.xLabel);	        		
-		        	}
-		        	else
-		        	{
-		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-			      	  	searchCriteria.setNameStartsWith(point.xLabel);// + ", campania");
-			      	  	searchCriteria.setLanguage("it");
-			      	  	//searchCriteria.setAdminCode1("3181042");
-			      	  	searchCriteria.setFeatureCode("ADM3");
-			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-			      	  	
-			      	  	List<Toponym> toponyms = searchResult.getToponyms();
-			      	  	
-			      	  	if(toponyms.size() > 0)
-			      	  	{
-			      	  		comuneAslToponym = toponyms.get(0);
-			      	  		geoplaceMap.put(point.xLabel, comuneAslToponym);			      	  	
-			      	  	}	        		
-		        	}
-		        		        		      		        	
+		        	Toponym residenzaToponym = searchForToponym(point.yLabel);
+		        	Toponym comuneAslToponym = searchForToponym(point.xLabel);
+		        			        	        		      		        
 		        	double distance = -1;
 		        	
 		        	if(comuneAslToponym != null && residenzaToponym != null)
@@ -613,11 +571,7 @@ public class DBAPI {
 		        	System.out.println(res.getString("comune_asl"));
 		        	System.out.println(res.getString("residenza"));
 		        	System.out.println(res.getString("val"));
-		        	
-		        	
-		        	
-		        	
-	        	//}
+		        			       
 	        }
 	        
 	        res.close();
@@ -997,7 +951,7 @@ public class DBAPI {
 	}
 	
 	
-	public BaseModel attesaPerBranca(String comuneId, String startData, String endData)
+	public BaseModel attesaPerBranca(String comune, String startData, String endData)
 	{		
 		try 
 		{
@@ -1009,9 +963,9 @@ public class DBAPI {
 	        // AND sa_gg_attesa < 400
 	        String qry = "SELECT descrizione, MIN(sa_gg_attesa) as min, MAX(sa_gg_attesa) as max, AVG(sa_gg_attesa) as avg, count(descrizione) as count FROM dwh_mis_cup, branche WHERE sa_branca_id = id_branca AND sa_gg_attesa > 0 AND (dwh_mis_cup.sa_stato_pren::text = 'N'::text or dwh_mis_cup.sa_stato_pren::text is null)";
 	        
-	        if(comuneId != null && !comuneId.equals(""))	        
-	        	qry += " AND sa_comune_id = '" + comuneId + "'";
-	        
+//	        if(comuneId != null && !comuneId.equals(""))	        
+//	        	qry += " AND sa_comune = '" + comune + "'";
+//	        
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";
 	        
@@ -1214,8 +1168,6 @@ public class DBAPI {
 	        
 	        // Stampiamone i risultati riga per riga
 	        
-	        WebService.setUserName("ugos"); // add your username here
-	        WebService.setGeoNamesServer("http://api.geonames.org");
 	        int i = (limit == 0 ? Integer.MAX_VALUE : limit);
 	        while (i > 0 && res.next()) 
 	        {
@@ -1227,23 +1179,10 @@ public class DBAPI {
 	        	System.out.println("count " + count);
 	        	try
 	        	{
-		        	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-		      	  	searchCriteria.setNameStartsWith(descrizione);// + ", campania");
-		      	  	//searchCriteria.setCountryBias("it");
-		      	  	searchCriteria.setLanguage("it");
-		      	  	searchCriteria.setFeatureCode("ADM3");
-		      	  	//searchCriteria.setCountryCode("it");
-		      	  	
-		      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-		      	  	
-		      	  	List<Toponym> toponyms = searchResult.getToponyms();
-		      	  	
-		      	  	if(toponyms.size() > 0)
-		      	  	{
-
-			      	  	Toponym toponym = toponyms.get(0);
-			      	  	
-			      		  System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
+	        		Toponym toponym = searchForToponym(descrizione);
+		        	if(toponym != null)
+		      	  	{	
+		        		System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
 		
 			      		  HeatmapItem item = new HeatmapItem();
 			      		  
@@ -1314,8 +1253,6 @@ public class DBAPI {
 	        
 	        // Stampiamone i risultati riga per riga
 	        
-	        WebService.setUserName("ugos"); // add your username here
-	        WebService.setGeoNamesServer("http://api.geonames.org");
 	        int i = limit == 0 ? Integer.MAX_VALUE : limit;
 	        while (i > 0 && res.next()) 
 	        {
@@ -1327,22 +1264,9 @@ public class DBAPI {
 	        	//System.out.println("count " + count);
 	        	try
 	        	{
-		        	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-		      	  	searchCriteria.setNameStartsWith(descrizione);// + ", campania");
-		      	  	searchCriteria.setLanguage("it");
-		      	  	//searchCriteria.setAdminCode1("3181042");
-		      	  	searchCriteria.setFeatureCode("ADM3");
-		      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-		      	  	
-		      	  	List<Toponym> toponyms = searchResult.getToponyms();
-		      	  	
-		      	  	if(toponyms.size() > 0)
-		      	  	{
-
-			      	  	Toponym toponym = toponyms.get(0);
-			      	  	
-			      		  //System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
-		
+	        		Toponym toponym = searchForToponym(descrizione);
+		        	if(toponym != null)
+		      	  	{		
 			      		  HeatmapItem item = new HeatmapItem();
 			      		  
 			      		  item.lat = toponym.getLatitude();
@@ -1426,53 +1350,9 @@ public class DBAPI {
 		        	String residenza = res.getString("residenza");
 		        	String comune_asl = res.getString("comune_asl");
 		        	
-		        	Toponym residenzaToponym = null;
-		        	Toponym comuneAslToponym = null;
-		        	
-		        	if(geoplaceMap.containsKey(residenza))
-		        	{
-		        		residenzaToponym = geoplaceMap.get(residenza);	        		
-		        	}
-		        	else
-		        	{
-		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-			      	  	searchCriteria.setNameStartsWith(residenza);// + ", campania");
-			      	  	searchCriteria.setLanguage("it");
-			      	  	//searchCriteria.setAdminCode1("3181042");
-			      	  	searchCriteria.setFeatureCode("ADM3");
-			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-			      	  	
-			      	  	List<Toponym> toponyms = searchResult.getToponyms();
-			      	  	
-			      	  	if(toponyms.size() > 0)
-			      	  	{
-			      	  		residenzaToponym = toponyms.get(0);
-			      	  		geoplaceMap.put(residenza, residenzaToponym);			      	  	
-			      	  	}	        		
-		        	}
-	        	
-		        	if(geoplaceMap.containsKey(comune_asl))
-		        	{
-		        		comuneAslToponym = geoplaceMap.get(comune_asl);	        		
-		        	}
-		        	else
-		        	{
-		        		ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-			      	  	searchCriteria.setNameStartsWith(comune_asl);// + ", campania");
-			      	  	searchCriteria.setLanguage("it");
-			      	  	//searchCriteria.setAdminCode1("3181042");
-			      	  	searchCriteria.setFeatureCode("ADM3");
-			      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-			      	  	
-			      	  	List<Toponym> toponyms = searchResult.getToponyms();
-			      	  	
-			      	  	if(toponyms.size() > 0)
-			      	  	{
-			      	  		comuneAslToponym = toponyms.get(0);
-			      	  		geoplaceMap.put(comune_asl, comuneAslToponym);			      	  	
-			      	  	}	        		
-		        	}
-		        		        		      		        	
+		        	Toponym residenzaToponym = searchForToponym(residenza);
+		        	Toponym comuneAslToponym = searchForToponym(comune_asl);
+		        			      	  		        		        		      		        
 		        	if(comuneAslToponym != null && residenzaToponym != null)
 		        	{
 		        		  int count = res.getInt("val");
@@ -1591,8 +1471,7 @@ public class DBAPI {
 	        
 	        // Stampiamone i risultati riga per riga
 	        
-	        WebService.setUserName("ugos"); // add your username here
-	        WebService.setGeoNamesServer("http://api.geonames.org");
+	        
 	        int i = limit;
 	        while (i > 0 && res.next()) 
 	        {
@@ -1604,27 +1483,20 @@ public class DBAPI {
 	        	System.out.println("count " + count);
 	        	try
 	        	{
-		        	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-		      	  	searchCriteria.setQ(descrizione);
-		      	  	ToponymSearchResult searchResult = WebService.search(searchCriteria);
-		      	  	
-		      	  	List<Toponym> toponyms = searchResult.getToponyms();
-		      	  	
-		      	  	if(toponyms.size() > 0)
-		      	  	{
-
-			      	  	Toponym toponym = toponyms.get(0);
-			      	  	
-			      		  System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
-		
-			      		  HeatmapItem item = new HeatmapItem();
-			      		  
-			      		  item.lat = toponym.getLatitude();
-			      		  item.lon = toponym.getLongitude();
-			      		  item.weight = count;
-			      		  item.name = descrizione;
-			      		  
-			      		  values.add(item);
+	        		Toponym toponym = searchForToponym(descrizione);
+	        			        			      	  	
+		      	  	if(toponym != null)
+		      	  	{			      	  	
+		      		  System.out.println(toponym.getName() + " " + toponym.getCountryName() + " - " + count);
+	
+		      		  HeatmapItem item = new HeatmapItem();
+		      		  
+		      		  item.lat = toponym.getLatitude();
+		      		  item.lon = toponym.getLongitude();
+		      		  item.weight = count;
+		      		  item.name = descrizione;
+		      		  
+		      		  values.add(item);
 			      	}	        		        		        		     
 	        	}
 	        	catch(Exception ex)
@@ -1834,6 +1706,72 @@ public class DBAPI {
 	    } 
 				
 		return null;
+	}
+	
+	private Toponym searchForToponym(String name)
+	{
+		Toponym toponym = null;
+	
+		if(geoplaceMap.containsKey(name))
+		{
+			toponym = geoplaceMap.get(name);	        		
+		}
+		else
+		{
+			
+			try {
+				// Creiamo un oggetto Statement per poter interrogare il db
+				Statement cmd = con.createStatement ();
+ 
+				// Eseguiamo una query e immagazziniamone i risultati
+				// in un oggetto ResultSet
+				String qry = "SELECT * FROM geoname where LOWER(name) = LOWER('" + name.replace("'",  "''") + "') AND (fcode = 'ADM3')";
+							        		
+				System.out.println(qry);
+ 
+				ResultSet res = cmd.executeQuery(qry);
+ 
+				if (res.next())
+				{
+					toponym = new Toponym();
+				
+					System.out.println(res.getString("name"));
+					
+					toponym.setName(res.getString("name"));
+					toponym.setLatitude(res.getDouble("latitude"));
+					toponym.setLongitude(res.getDouble("longitude"));
+				}
+				
+				res.close();
+				cmd.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+//			ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
+//  	  		searchCriteria.setNameStartsWith(name);// + ", campania");
+//  	  		searchCriteria.setLanguage("it");
+//  	  		searchCriteria.setFeatureCode("ADM3");
+//  	  		ToponymSearchResult searchResult;
+//			try {
+//				searchResult = WebService.search(searchCriteria);
+//				List<Toponym> toponyms = searchResult.getToponyms();
+//		  	  	
+//		  	  	if(toponyms.size() > 0)
+//		  	  	{
+//		  	  		toponym = toponyms.get(0);
+//		  	  		geoplaceMap.put(name, toponym);
+//		  	  	}
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//  	  	
+//	  	  	
+//  	  	}	        		
+		
+		return toponym;
 	}
 	
 //	ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
