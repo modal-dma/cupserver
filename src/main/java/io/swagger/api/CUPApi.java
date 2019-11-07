@@ -46,7 +46,7 @@ public interface CUPApi {
     @RequestMapping(value = "/prestazioniPerBranca",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue);
+    ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue);
 
     @ApiOperation(value = "Prestazioni Altre Branche", nickname = "prestazioniAltreBranche", notes = "prestazioniAltreBranche ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -55,7 +55,7 @@ public interface CUPApi {
     @RequestMapping(value = "/prestazioniAltreBranche",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+    ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
     @ApiOperation(value = "Prestazioni Conteggio", nickname = "prestazioniConteggio", notes = "prestazioniConteggio ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -64,7 +64,7 @@ public interface CUPApi {
     @RequestMapping(value = "/prestazioniConteggio",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+    ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
     
     @ApiOperation(value = "Prestazioni Per Branca per Comune", nickname = "prestazioniPerBrancaPerComune", notes = "prestazioniPerBrancaPerComune", response = Dataset3D.class, responseContainer = "List", tags={ "developers", })
@@ -84,7 +84,7 @@ public interface CUPApi {
     @RequestMapping(value = "/attesaPerBranca",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> attesaPerBranca(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+    ResponseEntity<Dataset> attesaPerBranca(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl,  @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
 
     @ApiOperation(value = "Attesa Disponibilità Per Branca", nickname = "attesaDisponibilitaPerBranca", notes = "attesaDisponibilitaPerBranca ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -93,7 +93,7 @@ public interface CUPApi {
     @RequestMapping(value = "/attesaDisponibilitaPerBranca",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> attesaDisponibilitaPerBranca(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
+    ResponseEntity<Dataset> attesaDisponibilitaPerBranca(@ApiParam(value = "id comune (opzionale)") @Valid @RequestParam(value = "comuneId", required = false) String comuneId, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate);
     
     @ApiOperation(value = "Branche", nickname = "branche", notes = "branche", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -120,7 +120,7 @@ public interface CUPApi {
     @RequestMapping(value = "/tipoPrestazioni",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<Dataset> tipoPrestazione(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
+    ResponseEntity<Dataset> tipoPrestazione(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
 
     @ApiOperation(value = "Heatmap Prestazioni", nickname = "heatmapPrestazioni", notes = "heatmapPrestazioni", response = ArrayList.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 
@@ -147,7 +147,7 @@ public interface CUPApi {
     @RequestMapping(value = "/heatmapBranche",
         produces = { "application/json" }, 
         method = RequestMethod.GET)
-    ResponseEntity<ArrayList<HeatmapItem>> heatmapBranche(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
+    ResponseEntity<ArrayList<HeatmapItem>> heatmapBranche(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit);
 
     @ApiOperation(value = "Attesa Disponibilità Per Branca", nickname = "prenotazioniPerPrestazioneDopoPrestazione", notes = "prenotazioniPerBrancaDopoBranca ", response = Dataset.class, responseContainer = "List", tags={ "developers", })
     @ApiResponses(value = { 

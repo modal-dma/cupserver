@@ -1,11 +1,21 @@
 package io.swagger.api;
 
-import io.swagger.model.Dataset;
-import io.swagger.model.Dataset3D;
-import io.swagger.model.HeatmapItem;
-import io.swagger.model.PathNode;
-import io.swagger.model.TreemapDataset;
-import io.swagger.model.Value3D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LongSummaryStatistics;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modal.db.BaseModel;
@@ -14,32 +24,14 @@ import com.modal.db.BaseModel3D.Point3D;
 import com.modal.db.DBAPI;
 import com.modal.db.DBAPI.Item;
 
-import io.swagger.annotations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.multipart.MultipartFile;
+import io.swagger.annotations.ApiParam;
+import io.swagger.model.Dataset;
+import io.swagger.model.Dataset3D;
+import io.swagger.model.HeatmapItem;
+import io.swagger.model.PathNode;
+import io.swagger.model.TreemapDataset;
+import io.swagger.model.Value3D;
 
-import javax.validation.constraints.*;
-import javax.validation.Valid;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.LongSummaryStatistics;
 @javax.annotation.Generated(value = "io.swagger.codegen.languages.SpringCodegen", date = "2019-06-12T09:36:36.471Z")
 
 @Controller
@@ -57,13 +49,13 @@ public class CUPApiController implements CUPApi {
         this.request = request;
     }
 
-    public ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue)
+    public ResponseEntity<Dataset> prestazioniPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "minValue (opzionale)") @Valid @RequestParam(value = "minValue", required = false) Integer minValue)
     {
             try {
             	
             	DBAPI dbapi = DBAPI.getInstance();
         		
-        		BaseModel model = dbapi.prestazioniPerBranca(comune, startDate, endDate, minValue);
+        		BaseModel model = dbapi.prestazioniPerBranca(comune, asl, startDate, endDate, minValue);
         		
         		Dataset dataset = new Dataset();
         		
@@ -81,13 +73,13 @@ public class CUPApiController implements CUPApi {
             }
     }
     
-    public ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+    public ResponseEntity<Dataset> prestazioniConteggio(@ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
     {
             try {
             	
             	DBAPI dbapi = DBAPI.getInstance();
         		
-        		BaseModel model = dbapi.prestazioniConteggio(startDate, endDate);
+        		BaseModel model = dbapi.prestazioniConteggio(startDate, endDate, asl);
         		
         		Dataset dataset = new Dataset();
         		
@@ -105,13 +97,13 @@ public class CUPApiController implements CUPApi {
             }
     }
     
-    public ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
+    public ResponseEntity<Dataset> prestazioniAltreBranche(@ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate)
     {
             try {
             	
             	DBAPI dbapi = DBAPI.getInstance();
         		
-        		BaseModel model = dbapi.prestazioniAltreBranche(startDate, endDate);
+        		BaseModel model = dbapi.prestazioniAltreBranche(asl, startDate, endDate);
         		
         		Dataset dataset = new Dataset();
         		
@@ -187,13 +179,13 @@ public class CUPApiController implements CUPApi {
          }
     }
     
-    public ResponseEntity<Dataset> attesaPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate) 
+    public ResponseEntity<Dataset> attesaPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate) 
     {
           try {
           	
           	DBAPI dbapi = DBAPI.getInstance();
       		
-      		BaseModel model = dbapi.attesaPerBranca(comune, startDate, endDate);
+      		BaseModel model = dbapi.attesaPerBranca(comune, asl, startDate, endDate);
       		
       		Dataset dataset = new Dataset();
       		
@@ -211,13 +203,13 @@ public class CUPApiController implements CUPApi {
           }
   }
     
-	public ResponseEntity<Dataset> attesaDisponibilitaPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate) 
+	public ResponseEntity<Dataset> attesaDisponibilitaPerBranca(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate) 
 	{
 	      try {
 	      	
 	      	DBAPI dbapi = DBAPI.getInstance();
 	  		
-	  		BaseModel model = dbapi.attesaDisponibiitaPerBranca(comune, startDate, endDate);
+	  		BaseModel model = dbapi.attesaDisponibiitaPerBranca(comune, asl, startDate, endDate);
 	  		
 	  		Dataset dataset = new Dataset();
 	  		
@@ -371,13 +363,13 @@ public class CUPApiController implements CUPApi {
 	      }
 	}
 	
-	 public ResponseEntity<Dataset> tipoPrestazione(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
+	 public ResponseEntity<Dataset> tipoPrestazione(@ApiParam(value = "comune (opzionale)") @Valid @RequestParam(value = "comune", required = false) String comune, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
 	    {
 	            try {
 	            	
 	            	DBAPI dbapi = DBAPI.getInstance();
 	        		
-	        		BaseModel model = dbapi.tipoPrestazione(comune, startDate, endDate, limit != null ? limit.intValue() : 0);
+	        		BaseModel model = dbapi.tipoPrestazione(comune, asl, startDate, endDate, limit != null ? limit.intValue() : 0);
 	        		
 	        		Dataset dataset = new Dataset();
 	        		
@@ -440,13 +432,13 @@ public class CUPApiController implements CUPApi {
 		      }
 	 	}
 	 	
-	 	public ResponseEntity<ArrayList<HeatmapItem>> heatmapBranche(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
+	 	public ResponseEntity<ArrayList<HeatmapItem>> heatmapBranche(@ApiParam(value = "branca") @Valid @RequestParam(value = "branca", required = true) String branca, @ApiParam(value = "asl (opzionale)") @Valid @RequestParam(value = "asl", required = false) String asl, @ApiParam(value = "data inizio(opzionale)") @Valid @RequestParam(value = "startdate", required = false) String startDate, @ApiParam(value = "datafine (opzionale)") @Valid @RequestParam(value = "enddate", required = false) String endDate, @ApiParam(value = "limit (opzionale)") @Valid @RequestParam(value = "limit", required = false) Integer limit)
 	 	{
 	 		try {
             	
             	DBAPI dbapi = DBAPI.getInstance();
         		
-            	ArrayList<HeatmapItem> heatmap = dbapi.heatmapBranche(branca, startDate, endDate, limit != null ? limit.intValue() : 0);
+            	ArrayList<HeatmapItem> heatmap = dbapi.heatmapBranche(branca, asl, startDate, endDate, limit != null ? limit.intValue() : 0);
         		
         		
         		HttpHeaders headers = new HttpHeaders();

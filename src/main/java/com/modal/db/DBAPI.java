@@ -245,7 +245,7 @@ public class DBAPI {
 		return null;
 	}
 	
-	public BaseModel prestazioniAltreBranche(String startData, String endData)
+	public BaseModel prestazioniAltreBranche(String startData, String endData, String asl)
 	{
 		
 		try 
@@ -261,6 +261,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData  + "'";
 	        		
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += "GROUP BY prestazioni.descrizione ORDER BY (count(prestazioni.descrizione)) DESC";
 	        	        
 	        System.out.println("query " + qry);
@@ -343,7 +346,7 @@ public class DBAPI {
 		return null;
 	}
 	
-	public BaseModel prestazioniConteggio(String startData, String endData)
+	public BaseModel prestazioniConteggio(String startData, String endData, String asl)
 	{
 		
 		try 
@@ -359,6 +362,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData  + "'";
 	        		
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += "GROUP BY descrizione ORDER BY val DESC";
 	        	        
 	        System.out.println("query " + qry);
@@ -395,7 +401,7 @@ public class DBAPI {
 		return null;
 	}
 	
-	public BaseModel prestazioniPerBranca(String comune, String startData, String endData, Integer minValue)
+	public BaseModel prestazioniPerBranca(String comune, String asl, String startData, String endData, Integer minValue)
 	{
 		
 		try 
@@ -416,6 +422,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData  + "'";
 	        	        
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += " GROUP BY branche.descrizione ORDER BY val DESC";
 	        
 //	        select * from dwh_mis_cup where sa_data_pren >= '01/01/2017' and sa_data_pren <= '31/12/2017'
@@ -911,7 +920,7 @@ public class DBAPI {
 	        // in un oggetto ResultSet
 	        String qry = "select prestazione, count as totale from prestazioni_eta";
 	        
-	        qry += " where eta = '" + eta + "' AND count > 500";
+	        qry += " where eta = '" + eta + "' AND count > 800";
 	        
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";
@@ -951,7 +960,7 @@ public class DBAPI {
 	}
 	
 	
-	public BaseModel attesaPerBranca(String comune, String startData, String endData)
+	public BaseModel attesaPerBranca(String comune, String asl, String startData, String endData)
 	{		
 		try 
 		{
@@ -972,6 +981,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData + "'";
 	        
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += " GROUP BY descrizione ORDER BY avg DESC";
 	        
 	        ResultSet res = cmd.executeQuery(qry);
@@ -1016,7 +1028,7 @@ public class DBAPI {
 		return null;
 	}
 	
-	public BaseModel attesaDisponibiitaPerBranca(String comuneId, String startData, String endData)
+	public BaseModel attesaDisponibiitaPerBranca(String comuneId, String asl, String startData, String endData)
 	{		
 		try 
 		{
@@ -1036,6 +1048,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData + "'";
 	        
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+	        
 	        qry += " GROUP BY descrizione ORDER BY avg DESC";
 	        
 	        ResultSet res = cmd.executeQuery(qry);
@@ -1080,7 +1095,7 @@ public class DBAPI {
 		return null;
 	}
 	
-	public BaseModel tipoPrestazione(String comune, String startData, String endData, int limit)
+	public BaseModel tipoPrestazione(String comune, String asl, String startData, String endData, int limit)
 	{
 		
 		try 
@@ -1101,6 +1116,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData + "'";
 	        		
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += " GROUP BY prestazioni.descrizione ORDER BY val DESC" + (limit > 0 ? " LIMIT " + limit : "");
 	        
 	        ResultSet res = cmd.executeQuery(qry);
@@ -1327,7 +1345,7 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData + "'";
 	        			        
-	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where id_residenza = quartieri.codcomune";
+	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where id_residenza = quartieri.codcomune AND quartieri.quartiere = '0'";
 
 	        System.out.println(qry);
 	        
@@ -1446,7 +1464,7 @@ public class DBAPI {
 	    return Math.sqrt(distance) / 1000;
 	}
 	
-	public ArrayList<HeatmapItem> heatmapBranche(String branca, String startData, String endData, int limit)
+	public ArrayList<HeatmapItem> heatmapBranche(String branca, String asl, String startData, String endData, int limit)
 	{		
 		try 
 		{
@@ -1463,6 +1481,9 @@ public class DBAPI {
 	        if(endData != null)
 	        	qry += " AND sa_data_pren <= '" + endData + "'";
 	        		
+	        if(asl != null)
+	        	qry += " AND sa_asl = '" + asl + "'";
+
 	        qry += " GROUP BY quartieri.descrizione ORDER BY val DESC LIMIT " + limit;
 	        
 	        ResultSet res = cmd.executeQuery(qry);
@@ -1740,6 +1761,9 @@ public class DBAPI {
 					toponym.setName(res.getString("name"));
 					toponym.setLatitude(res.getDouble("latitude"));
 					toponym.setLongitude(res.getDouble("longitude"));
+					
+					geoplaceMap.put(name, toponym);     	
+					
 				}
 				
 				res.close();
@@ -1749,27 +1773,28 @@ public class DBAPI {
 				e.printStackTrace();
 			}
 		}
-//			ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
-//  	  		searchCriteria.setNameStartsWith(name);// + ", campania");
-//  	  		searchCriteria.setLanguage("it");
-//  	  		searchCriteria.setFeatureCode("ADM3");
-//  	  		ToponymSearchResult searchResult;
-//			try {
-//				searchResult = WebService.search(searchCriteria);
-//				List<Toponym> toponyms = searchResult.getToponyms();
-//		  	  	
-//		  	  	if(toponyms.size() > 0)
-//		  	  	{
-//		  	  		toponym = toponyms.get(0);
-//		  	  		geoplaceMap.put(name, toponym);
-//		  	  	}
-//			} catch (Exception e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//  	  	
-//	  	  	
-//  	  	}	        		
+		
+		if(toponym == null)
+		{
+			ToponymSearchCriteria searchCriteria = new ToponymSearchCriteria();
+  	  		searchCriteria.setNameStartsWith(name);// + ", campania");
+  	  		searchCriteria.setLanguage("it");
+  	  		searchCriteria.setFeatureCode("ADM3");
+  	  		ToponymSearchResult searchResult;
+			try {
+				searchResult = WebService.search(searchCriteria);
+				List<Toponym> toponyms = searchResult.getToponyms();
+		  	  	
+		  	  	if(toponyms.size() > 0)
+		  	  	{
+		  	  		toponym = toponyms.get(0);
+		  	  		geoplaceMap.put(name, toponym);
+		  	  	}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}  	  		  	
+  	  	}	        		
 		
 		return toponym;
 	}
