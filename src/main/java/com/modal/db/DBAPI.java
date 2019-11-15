@@ -17,6 +17,7 @@ import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 
+import org.geonames.Style;
 import org.geonames.Toponym;
 import org.geonames.ToponymSearchCriteria;
 import org.geonames.ToponymSearchResult;
@@ -542,7 +543,7 @@ public class DBAPI {
 //	        if(endData != null)
 //	        	qry += " AND sa_data_pren <= '" + endData + "'";
 //	        			        
-	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where id_residenza = quartieri.codcomune AND quartieri.quartiere = '0'" + ((comune != null && comune != "" && !comune.equals(" ")) ? " AND quartieri.descrizione = '" + comune + "'": "");
+	        qry = "SELECT base.comune_asl as comune_asl, quartieri.descrizione as residenza, val from (" + qry + ") as base, quartieri where val > " + minCount + " AND id_residenza = quartieri.codcomune AND quartieri.quartiere = '0'" + ((comune != null && comune != "" && !comune.equals(" ")) ? " AND quartieri.descrizione = '" + comune.replace("'", "''") + "'": "");
 
 	        System.out.println(qry);
 	        
@@ -563,7 +564,7 @@ public class DBAPI {
 		        	
 		        	point.xLabel = res.getString("comune_asl");
 		        	point.yLabel = res.getString("residenza");
-		        	point.val = new BigDecimal(val);
+		        	//point.val = new BigDecimal(val);
 		        	
 		        	Toponym residenzaToponym = searchForToponym(point.yLabel);
 		        	Toponym comuneAslToponym = searchForToponym(point.xLabel);
@@ -573,13 +574,21 @@ public class DBAPI {
 		        	if(comuneAslToponym != null && residenzaToponym != null)
 		        		distance = distance(comuneAslToponym.getLatitude(), comuneAslToponym.getLongitude(), 0, residenzaToponym.getLatitude(), residenzaToponym.getLongitude(), 0);
 		        	
-		        	point.weight = new BigDecimal(distance);
-		        			        
-		        	model.points.add(point);
+		        	point.data1 = new BigDecimal(distance);
+		        	point.data2 = new BigDecimal(val);
+		        	
+		        	if(comuneAslToponym != null)
+		        	{
+		        		point.val = new BigDecimal(((double)val / (double)comuneAslToponym.getPopulation()) * 10000);
+		        	
+		        		if(point.val.doubleValue() >= 1)
+		        			model.points.add(point);
+		        	}
 		        	
 		        	System.out.println(res.getString("comune_asl"));
 		        	System.out.println(res.getString("residenza"));
 		        	System.out.println(res.getString("val"));
+		        	System.out.println(point.val);
 		        			       
 	        }
 	        
@@ -813,10 +822,10 @@ public class DBAPI {
 	 
 	        // Eseguiamo una query e immagazziniamone i risultati
 	        // in un oggetto ResultSet
-	        String qry = "select * from prestazioni_eta ";
+	        String qry = "select * from prestazioni_eta where count > 1000";
 	        
 	        if(comuneId != null && !comuneId.equals(""))	        
-	        	qry += " where	 sa_comune_id = '" + comuneId + "'";
+	        	qry += " AND count > 1000 AND sa_comune_id = '" + comuneId + "'";
 	        
 	        if(startData != null)
 	        	qry += " AND sa_data_pren >= '" + startData + "'";
@@ -1757,10 +1766,11 @@ public class DBAPI {
 					toponym = new Toponym();
 				
 					System.out.println(res.getString("name"));
-					
+					toponym.setStyle(Style.FULL);
 					toponym.setName(res.getString("name"));
 					toponym.setLatitude(res.getDouble("latitude"));
 					toponym.setLongitude(res.getDouble("longitude"));
+					toponym.setPopulation(res.getLong("population"));
 					
 					geoplaceMap.put(name, toponym);     	
 					
@@ -1780,6 +1790,7 @@ public class DBAPI {
   	  		searchCriteria.setNameStartsWith(name);// + ", campania");
   	  		searchCriteria.setLanguage("it");
   	  		searchCriteria.setFeatureCode("ADM3");
+  	  		searchCriteria.setStyle(Style.LONG);
   	  		ToponymSearchResult searchResult;
 			try {
 				searchResult = WebService.search(searchCriteria);

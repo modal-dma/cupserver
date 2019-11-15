@@ -35,6 +35,10 @@ public class Value3D   {
   @JsonProperty("weight")
   @Valid
   public BigDecimal weight;
+  
+  @JsonProperty("weight2")
+  @Valid
+  public BigDecimal weight2;
 }
 
 

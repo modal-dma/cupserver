@@ -704,8 +704,8 @@ public class CUPApiController implements CUPApi {
 		     			value.x = p.xLabel;
 		     			value.y = p.yLabel;
 		     			value.value = p.val;
-		     			value.weight = p.weight;
-		     			
+		     			value.weight = p.data1;
+		     			value.weight2 = p.data2;
 		     			dataset.values.add(value);
 	     			}
 	     		}
